@@ -1,42 +1,109 @@
-# balance.py
+import math
+import threading
+import weakref
 
 from transaction.transaction_category import TransactionCategory
+
 
 class Balance:
     """Singleton to track the balance."""
 
     _instance = None
+    _instance_lock = threading.Lock()
 
     def __init__(self):
         """Initialize the balance. Prevent direct instantiation."""
-        pass
+        if Balance._instance is not None:
+            raise RuntimeError("Use Balance.get_instance() to access the singleton.")
+
+        self._net_balance = 0.0
+        self._observers = weakref.WeakSet()
+        self._state_lock = threading.RLock()
+
+    @classmethod
+    def get_instance(cls):
+        """Return the single shared Balance instance."""
+        if cls._instance is None:
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = cls()
+        return cls._instance
+
+    @staticmethod
+    def _validate_amount(amount):
+        """Return amount as a finite float."""
+        try:
+            value = float(amount)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Amount must be numeric") from exc
+
+        if not math.isfinite(value):
+            raise ValueError("Amount must be finite")
+
+        return value
 
     def reset(self):
         """Reset the net balance to zero."""
-        pass
+        with self._state_lock:
+            self._net_balance = 0.0
+            self._observers.clear()
 
     def add_income(self, amount):
         """Add income to the balance."""
-        pass
+        value = self._validate_amount(amount)
+        with self._state_lock:
+            self._net_balance += value
 
     def add_expense(self, amount):
         """Subtract expense from the balance."""
-        pass
+        value = self._validate_amount(amount)
+        with self._state_lock:
+            self._net_balance -= value
+
+    def register_observer(self, observer):
+        """Register an observer for balance updates."""
+        if not hasattr(observer, "update") or not callable(observer.update):
+            raise ValueError("Observer must define an update(balance, transaction) method")
+
+        with self._state_lock:
+            self._observers.add(observer)
+
+    def unregister_observer(self, observer):
+        """Unregister an observer if present."""
+        with self._state_lock:
+            self._observers.discard(observer)
+
+    def notify_observers(self, transaction, current_balance):
+        """Notify all observers after a transaction is applied."""
+        with self._state_lock:
+            observers = tuple(self._observers)
+
+        for observer in observers:
+            observer.update(current_balance, transaction)
 
     def apply_transaction(self, transaction):
-        """
-        Apply a Transaction object to update the balance.
+        """Apply a transaction and notify observers with the updated balance."""
+        amount = self._validate_amount(transaction.amount)
 
-        Args:
-            transaction (Transaction): The transaction to apply.
-        """
-        pass
+        with self._state_lock:
+            if transaction.category == TransactionCategory.INCOME:
+                self._net_balance += amount
+            elif transaction.category == TransactionCategory.EXPENSE:
+                self._net_balance -= amount
+            else:
+                raise ValueError("Invalid transaction category")
+
+            current_balance = self._net_balance
+
+        self.notify_observers(transaction, current_balance)
 
     def get_balance(self):
         """Get the current net balance."""
-        pass
+        with self._state_lock:
+            return self._net_balance
 
     def summary(self):
         """Return a summary string of the net balance."""
-        pass
+        with self._state_lock:
+            return f"Current balance: ${self._net_balance:.2f}"
     
