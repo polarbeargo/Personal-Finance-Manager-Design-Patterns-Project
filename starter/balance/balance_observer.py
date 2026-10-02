@@ -1,5 +1,8 @@
 # balance_observer.py
 
+from decimal import Decimal
+from decimal import InvalidOperation
+
 
 class IBalanceObserver:
     """Interface for balance observers."""
@@ -24,7 +27,14 @@ class LowBalanceAlertObserver(IBalanceObserver):
     """Observer that flags when balance drops below a threshold."""
 
     def __init__(self, threshold):
-        self.threshold = float(threshold)
+        try:
+            self.threshold = Decimal(str(threshold))
+        except (TypeError, ValueError, InvalidOperation) as exc:
+            raise ValueError("Threshold must be numeric") from exc
+
+        if not self.threshold.is_finite():
+            raise ValueError("Threshold must be finite")
+
         self.alert_triggered = False
 
     def update(self, balance, transaction):

@@ -1,6 +1,7 @@
-import math
 import threading
 import weakref
+from decimal import Decimal
+from decimal import InvalidOperation
 
 from transaction.transaction_category import TransactionCategory
 
@@ -16,7 +17,7 @@ class Balance:
         if Balance._instance is not None:
             raise RuntimeError("Use Balance.get_instance() to access the singleton.")
 
-        self._net_balance = 0.0
+        self._net_balance = Decimal("0")
         self._observers = weakref.WeakSet()
         self._state_lock = threading.RLock()
 
@@ -31,13 +32,13 @@ class Balance:
 
     @staticmethod
     def _validate_amount(amount):
-        """Return amount as a finite float."""
+        """Return amount as a finite Decimal."""
         try:
-            value = float(amount)
-        except (TypeError, ValueError) as exc:
+            value = Decimal(str(amount))
+        except (TypeError, ValueError, InvalidOperation) as exc:
             raise ValueError("Amount must be numeric") from exc
 
-        if not math.isfinite(value):
+        if not value.is_finite():
             raise ValueError("Amount must be finite")
 
         return value
@@ -45,7 +46,7 @@ class Balance:
     def reset(self):
         """Reset the net balance to zero."""
         with self._state_lock:
-            self._net_balance = 0.0
+            self._net_balance = Decimal("0")
             self._observers.clear()
 
     def add_income(self, amount):
