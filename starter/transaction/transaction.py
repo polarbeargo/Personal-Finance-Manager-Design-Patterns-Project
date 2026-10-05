@@ -13,9 +13,7 @@ class Transaction:
     category: TransactionCategory
 
     def __init__(self, amount, category: TransactionCategory):
-        if not isinstance(category, TransactionCategory):
-            raise ValueError("category must be a TransactionCategory")
-
+        # Category is validated by Balance.apply_transaction, not here.
         try:
             normalized_amount = Decimal(str(amount))
         except (TypeError, ValueError, InvalidOperation) as exc:

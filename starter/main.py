@@ -10,8 +10,13 @@ from transaction.external_income_transaction import ExternalFreelanceIncome
 
 def main():
     print("Adding transactions...")
-   
-    # TODO: Create balance and add observers
+
+    balance = Balance.get_instance()
+    # Keep strong references: Balance holds observers weakly.
+    print_observer = PrintObserver()
+    low_balance_observer = LowBalanceAlertObserver(threshold=100)
+    balance.register_observer(print_observer)
+    balance.register_observer(low_balance_observer)
 
     # Create standard transactions
     transactions = [
@@ -28,7 +33,10 @@ def main():
 
     all_transactions = transactions + [adapted_transaction]
 
-    # TODO: Apply all transactions to balance
+    for transaction in all_transactions:
+        balance.apply_transaction(transaction)
+
+    print(balance.summary())
 
 if __name__ == "__main__":
     main()

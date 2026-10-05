@@ -3,6 +3,7 @@ import weakref
 from decimal import Decimal
 from decimal import InvalidOperation
 
+from transaction.transaction import Transaction
 from transaction.transaction_category import TransactionCategory
 
 
@@ -51,15 +52,11 @@ class Balance:
 
     def add_income(self, amount):
         """Add income to the balance."""
-        value = self._validate_amount(amount)
-        with self._state_lock:
-            self._net_balance += value
+        self.apply_transaction(Transaction(amount, TransactionCategory.INCOME))
 
     def add_expense(self, amount):
         """Subtract expense from the balance."""
-        value = self._validate_amount(amount)
-        with self._state_lock:
-            self._net_balance -= value
+        self.apply_transaction(Transaction(amount, TransactionCategory.EXPENSE))
 
     def register_observer(self, observer):
         """Register an observer for balance updates."""
@@ -77,10 +74,8 @@ class Balance:
     def notify_observers(self, transaction, current_balance):
         """Notify all observers after a transaction is applied."""
         with self._state_lock:
-            observers = tuple(self._observers)
-
-        for observer in observers:
-            observer.update(current_balance, transaction)
+            for observer in tuple(self._observers):
+                observer.update(current_balance, transaction)
 
     def apply_transaction(self, transaction):
         """Apply a transaction and notify observers with the updated balance."""
@@ -94,9 +89,8 @@ class Balance:
             else:
                 raise ValueError("Invalid transaction category")
 
-            current_balance = self._net_balance
-
-        self.notify_observers(transaction, current_balance)
+            # Notify under the lock so observers see updates in order.
+            self.notify_observers(transaction, self._net_balance)
 
     def get_balance(self):
         """Get the current net balance."""

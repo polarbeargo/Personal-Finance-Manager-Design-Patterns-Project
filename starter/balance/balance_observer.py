@@ -39,4 +39,11 @@ class LowBalanceAlertObserver(IBalanceObserver):
 
     def update(self, balance, transaction):
         """Alert if balance drops below threshold."""
+        was_triggered = self.alert_triggered
         self.alert_triggered = balance < self.threshold
+
+        if self.alert_triggered and not was_triggered:
+            print(
+                f"ALERT: Balance ${balance:.2f} fell below "
+                f"threshold ${self.threshold:.2f}"
+            )
