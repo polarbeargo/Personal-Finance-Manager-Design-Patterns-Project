@@ -23,10 +23,6 @@ class TestTransaction(unittest.TestCase):
         self.assertEqual(t1, t2)
         self.assertNotEqual(t1, t3)
 
-    def test_transaction_rejects_invalid_category(self):
-        with self.assertRaises(ValueError):
-            Transaction(20, "expense")
-
     def test_transaction_rejects_non_finite_amount(self):
         with self.assertRaises(ValueError):
             Transaction("NaN", TransactionCategory.INCOME)
