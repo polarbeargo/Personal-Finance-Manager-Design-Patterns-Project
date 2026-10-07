@@ -2,6 +2,8 @@
 from balance.balance import Balance
 from balance.balance_observer import LowBalanceAlertObserver
 from balance.balance_observer import PrintObserver
+from command.command_invoker import TransactionInvoker
+from command.transaction_command import ApplyTransactionCommand
 from transaction.transaction import Transaction
 from transaction.transaction_category import TransactionCategory
 from transaction.transaction_adapter import TransactionAdapter
@@ -33,9 +35,14 @@ def main():
 
     all_transactions = transactions + [adapted_transaction]
 
+    invoker = TransactionInvoker()
     for transaction in all_transactions:
-        balance.apply_transaction(transaction)
+        invoker.execute(ApplyTransactionCommand(balance, transaction))
 
+    print(balance.summary())
+
+    print("Undoing last transaction...")
+    invoker.undo()
     print(balance.summary())
 
 if __name__ == "__main__":
