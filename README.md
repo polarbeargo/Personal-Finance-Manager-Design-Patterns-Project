@@ -20,24 +20,26 @@ git clone https://github.com/udacity/cd14600-project-starter.git
 cd cd14600-project-starter/starter
 ```
 
-2. Run the Program: 
+2. Run the Program from the repository root:
 ```
-python main.py
+python3 starter/main.py
 ```
 
 ## Testing
 
 This project uses Python’s built-in unittest framework.
 
+Run the test commands from the repository root.
+
 To run all tests:
 
 ```
-python -m unittest discover
+python3 -m unittest discover
 ```
 
 To run a single test file:
-```
-python -m unittest balance/test_balance_observer.py
+```bash
+python3 -m unittest discover -s starter -p "test_balance_observer.py"
 ```
 
 ### Break Down Tests
@@ -46,6 +48,7 @@ python -m unittest balance/test_balance_observer.py
 - test_transaction.py → Confirms transactions update balances correctly.
 - test_transaction_adapter.py → Ensures external income data is correctly adapted into Transaction objects.
 - test_balance_observer.py → Validates that low-balance alerts are triggered at the correct threshold.
+- command/test_transaction_command.py → Validates command execution, undo, bounded history, and concurrent use.
 
 ## Project Instructions
 
@@ -56,6 +59,8 @@ python -m unittest balance/test_balance_observer.py
 5. Add Unit Tests – Write tests for all implemented functionality.
 6. Choose and Implement a Fourth Pattern – Pick one additional design pattern (e.g., Strategy, Command, Decorator, etc.) and integrate it into your project.
 7. Provide a Reflection – Add a short write-up in your repo (README or separate file) explaining your design choices.
+
+See [Reflection.md](Reflection.md) for the design pattern reflection.
 
 ## Built With
 
