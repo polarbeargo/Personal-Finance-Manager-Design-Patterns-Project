@@ -23,6 +23,9 @@ class PrintObserver(IBalanceObserver):
         )
 
 
+PrintBalance = PrintObserver
+
+
 class LowBalanceAlertObserver(IBalanceObserver):
     """Observer that flags when balance drops below a threshold."""
 

@@ -1,7 +1,7 @@
 """This module serves as the entry point for the program."""
 from balance.balance import Balance
 from balance.balance_observer import LowBalanceAlertObserver
-from balance.balance_observer import PrintObserver
+from balance.balance_observer import PrintBalance
 from command.command_invoker import TransactionInvoker
 from command.transaction_command import ApplyTransactionCommand
 from transaction.transaction import Transaction
@@ -15,7 +15,7 @@ def main():
 
     balance = Balance.get_instance()
     # Keep strong references: Balance holds observers weakly.
-    print_observer = PrintObserver()
+    print_observer = PrintBalance()
     low_balance_observer = LowBalanceAlertObserver(threshold=100)
     balance.register_observer(print_observer)
     balance.register_observer(low_balance_observer)
@@ -29,7 +29,8 @@ def main():
     ]
 
     # Create an external income transaction (via Adapter pattern)
-    freelance_income = ExternalFreelanceIncome(1200, "INV-98765", "Mobile App Project")
+    freelance_income = ExternalFreelanceIncome(
+        1200, "INV-98765", "Mobile App Project")
     adapter = TransactionAdapter(freelance_income)
     adapted_transaction = adapter.to_transaction()
 
@@ -44,6 +45,7 @@ def main():
     print("Undoing last transaction...")
     invoker.undo()
     print(balance.summary())
+
 
 if __name__ == "__main__":
     main()

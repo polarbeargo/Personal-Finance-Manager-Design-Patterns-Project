@@ -11,16 +11,26 @@ class Balance:
     """Singleton to track the balance."""
 
     _instance = None
-    _instance_lock = threading.Lock()
+    _instance_lock = threading.RLock()
+
+    def __new__(cls):
+        """Return the sole instance, including on direct construction."""
+        with cls._instance_lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                cls._instance._initialized = False
+            return cls._instance
 
     def __init__(self):
-        """Initialize the balance. Prevent direct instantiation."""
-        if Balance._instance is not None:
-            raise RuntimeError("Use Balance.get_instance() to access the singleton.")
+        """Initialize singleton state once under the instance lock."""
+        with type(self)._instance_lock:
+            if self._initialized:
+                return
 
-        self._net_balance = Decimal("0")
-        self._observers = weakref.WeakSet()
-        self._state_lock = threading.RLock()
+            self._net_balance = Decimal("0")
+            self._observers = weakref.WeakSet()
+            self._state_lock = threading.RLock()
+            self._initialized = True
 
     @classmethod
     def get_instance(cls):
@@ -56,12 +66,14 @@ class Balance:
 
     def add_expense(self, amount):
         """Subtract expense from the balance."""
-        self.apply_transaction(Transaction(amount, TransactionCategory.EXPENSE))
+        self.apply_transaction(Transaction(
+            amount, TransactionCategory.EXPENSE))
 
     def register_observer(self, observer):
         """Register an observer for balance updates."""
         if not hasattr(observer, "update") or not callable(observer.update):
-            raise ValueError("Observer must define an update(balance, transaction) method")
+            raise ValueError(
+                "Observer must define an update(balance, transaction) method")
 
         with self._state_lock:
             self._observers.add(observer)
@@ -78,7 +90,7 @@ class Balance:
                 observer.update(current_balance, transaction)
 
     def apply_transaction(self, transaction):
-        """Apply a transaction and notify observers with the updated balance."""
+        """Apply a transaction and notify observers of the updated balance."""
         amount = self._validate_amount(transaction.amount)
 
         with self._state_lock:
@@ -101,4 +113,3 @@ class Balance:
         """Return a summary string of the net balance."""
         with self._state_lock:
             return f"Current balance: ${self._net_balance:.2f}"
-    
