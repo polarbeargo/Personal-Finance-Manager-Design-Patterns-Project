@@ -22,7 +22,8 @@ class TransactionAdapter:
         required_fields = ("amount", "invoice_id", "description", "typ")
         for field in required_fields:
             if not hasattr(ext, field):
-                raise ValueError(f"external transaction missing required field: {field}")
+                raise ValueError(
+                    f"external transaction missing required field: {field}")
 
         if str(ext.typ).lower() != "income":
             raise ValueError("external transaction type must be income")
@@ -30,4 +31,7 @@ class TransactionAdapter:
     def to_transaction(self):
         """Convert an external transaction to a standard Transaction."""
         self._validate_external()
-        return Transaction(self.external_transaction.amount, TransactionCategory.INCOME)
+        return Transaction(
+            self.external_transaction.amount,
+            TransactionCategory.INCOME,
+        )

@@ -9,13 +9,15 @@ from transaction.transaction_category import TransactionCategory
 class TestTransactionAdapter(unittest.TestCase):
 
     def test_adapter_converts_freelance_income(self):
-        ext_txn = ExternalFreelanceIncome(500, "INV-12345", "Website development")
+        ext_txn = ExternalFreelanceIncome(
+            500, "INV-12345", "Website development")
         adapter = TransactionAdapter(ext_txn)
         txn = adapter.to_transaction()
         self.assertEqual(txn, Transaction(500, TransactionCategory.INCOME))
 
     def test_adapter_rejects_non_income_type(self):
-        ext_txn = ExternalFreelanceIncome(500, "INV-12345", "Website development")
+        ext_txn = ExternalFreelanceIncome(
+            500, "INV-12345", "Website development")
         ext_txn.typ = "expense"
 
         adapter = TransactionAdapter(ext_txn)
@@ -31,6 +33,7 @@ class TestTransactionAdapter(unittest.TestCase):
         adapter = TransactionAdapter(IncompleteExternalTransaction())
         with self.assertRaises(ValueError):
             adapter.to_transaction()
+
 
 if __name__ == "__main__":
     unittest.main()

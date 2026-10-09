@@ -25,7 +25,9 @@ class TestTransactionCommand(unittest.TestCase):
         self.invoker = TransactionInvoker()
 
     def _command(self, amount, category):
-        return ApplyTransactionCommand(self.balance, Transaction(amount, category))
+        return ApplyTransactionCommand(
+            self.balance, Transaction(amount, category)
+        )
 
     def test_execute_applies_transaction(self):
         self.invoker.execute(self._command(100, TransactionCategory.INCOME))
@@ -34,7 +36,8 @@ class TestTransactionCommand(unittest.TestCase):
 
     def test_undo_reverses_income_and_expense(self):
         self.invoker.execute(self._command(100, TransactionCategory.INCOME))
-        self.invoker.execute(self._command("30.10", TransactionCategory.EXPENSE))
+        self.invoker.execute(self._command(
+            "30.10", TransactionCategory.EXPENSE))
         self.assertEqual(self.balance.get_balance(), Decimal("69.90"))
 
         self.invoker.undo()
@@ -89,7 +92,8 @@ class TestTransactionCommand(unittest.TestCase):
 
         def run():
             for _ in range(per_worker):
-                invoker.execute(self._command("0.01", TransactionCategory.INCOME))
+                invoker.execute(self._command(
+                    "0.01", TransactionCategory.INCOME))
 
         threads = [threading.Thread(target=run) for _ in range(workers)]
         for thread in threads:

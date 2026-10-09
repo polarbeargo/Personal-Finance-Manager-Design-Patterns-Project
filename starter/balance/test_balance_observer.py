@@ -6,7 +6,9 @@ from transaction.transaction import Transaction
 from transaction.transaction_category import TransactionCategory
 from balance.balance import Balance
 from balance.balance_observer import LowBalanceAlertObserver
+from balance.balance_observer import PrintBalance
 from balance.balance_observer import PrintObserver
+
 
 class TestLowBalanceAlertObserver(unittest.TestCase):
 
@@ -18,19 +20,24 @@ class TestLowBalanceAlertObserver(unittest.TestCase):
         observer = LowBalanceAlertObserver(threshold=50)
         self.balance.register_observer(observer)
 
-        self.balance.apply_transaction(Transaction(100, TransactionCategory.INCOME))
+        self.balance.apply_transaction(
+            Transaction(100, TransactionCategory.INCOME))
         self.assertFalse(observer.alert_triggered)
 
-        self.balance.apply_transaction(Transaction(60, TransactionCategory.EXPENSE))
+        self.balance.apply_transaction(
+            Transaction(60, TransactionCategory.EXPENSE))
         self.assertTrue(observer.alert_triggered)
 
-        self.balance.apply_transaction(Transaction(100, TransactionCategory.INCOME))
+        self.balance.apply_transaction(
+            Transaction(100, TransactionCategory.INCOME))
         self.assertFalse(observer.alert_triggered)
 
-        self.balance.apply_transaction(Transaction(60, TransactionCategory.EXPENSE))
+        self.balance.apply_transaction(
+            Transaction(60, TransactionCategory.EXPENSE))
         self.assertFalse(observer.alert_triggered)
-        
-        self.balance.apply_transaction(Transaction(60, TransactionCategory.EXPENSE))
+
+        self.balance.apply_transaction(
+            Transaction(60, TransactionCategory.EXPENSE))
         self.assertTrue(observer.alert_triggered)
 
     def test_alert_prints_once_per_drop(self):
@@ -68,8 +75,10 @@ class TestPrintObserver(unittest.TestCase):
 
         output = io.StringIO()
         with redirect_stdout(output):
-            self.balance.apply_transaction(Transaction(100, TransactionCategory.INCOME))
-            self.balance.apply_transaction(Transaction(40, TransactionCategory.EXPENSE))
+            self.balance.apply_transaction(
+                Transaction(100, TransactionCategory.INCOME))
+            self.balance.apply_transaction(
+                Transaction(40, TransactionCategory.EXPENSE))
 
         lines = output.getvalue().splitlines()
         self.assertEqual(len(lines), 2)
@@ -86,6 +95,9 @@ class TestPrintObserver(unittest.TestCase):
             self.balance.add_income(10)
 
         self.assertEqual(output.getvalue(), "")
+
+    def test_print_balance_name_preserves_print_observer_compatibility(self):
+        self.assertIs(PrintBalance, PrintObserver)
 
 
 if __name__ == "__main__":

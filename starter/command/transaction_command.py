@@ -27,7 +27,7 @@ class Command(ABC):
 
 @dataclass(frozen=True, slots=True)
 class ApplyTransactionCommand(Command):
-    """Applies a transaction to a balance; undo applies the opposite transaction."""
+    """Apply a transaction and support its reversal."""
 
     balance: object
     transaction: Transaction

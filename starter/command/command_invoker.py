@@ -24,7 +24,7 @@ class TransactionInvoker:
             self._history.append(command)
 
     def undo(self):
-        """Undo the most recent command; return it, or None if history is empty."""
+        """Undo the latest command, or return None if history is empty."""
         with self._lock:
             if not self._history:
                 return None
